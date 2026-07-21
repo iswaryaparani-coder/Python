@@ -1,6 +1,4 @@
-Insert beginning
-
-class node:
+class Node:
 
 def __init__(Self,data):
 
