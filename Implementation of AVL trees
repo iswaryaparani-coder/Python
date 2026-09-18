@@ -1,0 +1,230 @@
+class Node:
+
+    def __init__(self, id, name, course):
+        self.id, self.name, self.course = id, name, course
+        self.height, self.left, self.right = 1, None, None
+
+
+class AVLTree:
+
+    def __init__(self):
+        self.root = None
+
+    def height(self, n):
+        return n.height if n else 0
+
+    def balance(self, n):
+        return self.height(n.left) - self.height(n.right) if n else 0
+
+    def rotate_right(self, y):
+        x = y.left
+        y.left = x.right
+        x.right = y
+        y.height = max(self.height(y.left), self.height(y.right)) + 1
+        x.height = max(self.height(x.left), self.height(x.right)) + 1
+        return x
+
+    def rotate_left(self, x):
+        y = x.right
+        x.right = y.left
+        y.left = x
+        x.height = max(self.height(x.left), self.height(x.right)) + 1
+        y.height = max(self.height(y.left), self.height(y.right)) + 1
+        return y
+
+    def _insert(self, root, id, name, course):
+        if not root:
+            return Node(id, name, course)
+        if id < root.id:
+            root.left = self._insert(root.left, id, name, course)
+        elif id > root.id:
+            root.right = self._insert(root.right, id, name, course)
+        else:
+            print("Error: ID already exists!")
+            return root
+
+        root.height = 1 + max(self.height(root.left), self.height(root.right))
+        bal = self.balance(root)
+
+        if bal > 1 and id < root.left.id:
+            return self.rotate_right(root)
+        if bal < -1 and id > root.right.id:
+            return self.rotate_left(root)
+        if bal > 1 and id > root.left.id:
+            root.left = self.rotate_left(root.left)
+            return self.rotate_right(root)
+        if bal < -1 and id < root.right.id:
+            root.right = self.rotate_right(root.right)
+            return self.rotate_left(root)
+        return root
+
+    def insert(self, id, name, course):
+        self.root = self._insert(self.root, id, name, course)
+
+    def _delete(self, root, id):
+        if not root:
+            print("Error: ID not found!")
+            return root
+        if id < root.id:
+            root.left = self._delete(root.left, id)
+        elif id > root.id:
+            root.right = self._delete(root.right, id)
+        else:
+            if not root.left or not root.right:
+                return root.left if root.left else root.right
+            temp = root.right
+            while temp.left:
+                temp = temp.left
+            root.id, root.name, root.course = temp.id, temp.name, temp.course
+            root.right = self._delete(root.right, temp.id)
+
+        if not root:
+            return root
+
+        root.height = 1 + max(self.height(root.left), self.height(root.right))
+        bal = self.balance(root)
+
+        if bal > 1 and self.balance(root.left) >= 0:
+            return self.rotate_right(root)
+        if bal > 1 and self.balance(root.left) < 0:
+            root.left = self.rotate_left(root.left)
+            return self.rotate_right(root)
+        if bal < -1 and self.balance(root.right) <= 0:
+            return self.rotate_left(root)
+        if bal < -1 and self.balance(root.right) > 0:
+            root.right = self.rotate_right(root.right)
+            return self.rotate_left(root)
+        return root
+
+    def delete(self, id):
+        self.root = self._delete(self.root, id)
+
+    def _search(self, root, id):
+        if not root or root.id == id:
+            return root
+        return self._search(root.right if id > root.id else root.left, id)
+
+    def search(self, id):
+        return self._search(self.root, id)
+
+    # Traversals
+    def _inorder(self, root, res):
+        if root:
+            self._inorder(root.left, res)
+            res.append((root.id, root.name, root.course))
+            self._inorder(root.right, res)
+
+    def inorder(self):
+        res = []
+        self._inorder(self.root, res)
+        return res
+
+    def _preorder(self, root, res):
+        if root:
+            res.append((root.id, root.name, root.course))
+            self._preorder(root.left, res)
+            self._preorder(root.right, res)
+
+    def preorder(self):
+        res = []
+        self._preorder(self.root, res)
+        return res
+
+    def _postorder(self, root, res):
+        if root:
+            self._postorder(root.left, res)
+            self._postorder(root.right, res)
+            res.append((root.id, root.name, root.course))
+
+    def postorder(self):
+        res = []
+        self._postorder(self.root, res)
+        return res
+
+    def _count(self, root):
+        return (
+            1 + self._count(root.left) + self._count(root.right) if root else 0
+        )
+
+    def count(self):
+        return self._count(self.root)
+
+    def display(self, node=None, lvl=0, p="Root: "):
+        if lvl == 0:
+            node = self.root
+        if not node:
+            print("[Database is empty]")
+            return
+        print(
+            " " * lvl
+            + p
+            + f"[ID: {node.id} | Name: {node.name} | Course: {node.course}]"
+        )
+        if node.left:
+            self.display(node.left, lvl + 1, "L--- ")
+        if node.right:
+            self.display(node.right, lvl + 1, "R--- ")
+
+
+# CLI Loop
+tree = AVLTree()
+while True:
+    print("--- MENU ---")
+    print(
+        "1. Insert 2. Delete 3. Search 4. In-order 5. Pre-order 6. Post-order 7. Count 8. Exit"
+    )
+    ch = input("Enter choice: ").strip()
+    if ch == "1":
+        try:
+            tree.insert(
+                int(input("ID: ")), input("Name: "), input("Course: ")
+            )
+            print("[Updated Tree Structure After Insertion]:")
+            tree.display()
+        except ValueError:
+            print("Invalid ID format. Must be an integer.")
+    elif ch == "2":
+        try:
+            tree.delete(int(input("ID to delete: ")))
+            print("[Updated Tree Structure After Deletion]:")
+            tree.display()
+        except ValueError:
+            print("Invalid ID format. Must be an integer.")
+    elif ch == "3":
+        try:
+            r = tree.search(int(input("ID to search: ")))
+            print(
+                f"[Search Result] -> ID: {r.id}, Name: {r.name}, Course: {r.course}"
+                if r
+                else "[Search Result] -> Not found."
+            )
+        except ValueError:
+            print("Invalid ID format.")
+    elif ch == "4":
+        print("\n[In-order Traversal (Sorted by ID)]:")
+        records = tree.inorder()
+        for rec in records:
+            print(f"ID: {rec[0]} | Name: {rec[1]} | Course: {rec[2]}")
+        if not records:
+            print("[Database is empty]")
+    elif ch == "5":
+        print("\n[Pre-order Traversal]:")
+        records = tree.preorder()
+        for rec in records:
+            print(f"ID: {rec[0]} | Name: {rec[1]} | Course: {rec[2]}")
+        if not records:
+            print("[Database is empty]")
+    elif ch == "6":
+        print("\n[Post-order Traversal]:")
+        records = tree.postorder()
+        for rec in records:
+            print(f"ID: {rec[0]} | Name: {rec[1]} | Course: {rec[2]}")
+        if not records:
+            print("[Database is empty]")
+    elif ch == "7":
+        print(f"[Total Enrollments]: {tree.count()}")
+    elif ch == "8":
+        print("Exiting...")
+        break
+    else:
+        print("Invalid choice, try again.")
