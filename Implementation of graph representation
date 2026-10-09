@@ -1,0 +1,46 @@
+users = input("Enter the user names separated by space: ").split()
+n = len(users)
+user_to_index = {user: i for i, user in enumerate(users)}
+
+adj_matrix = [[0 for _ in range(n)] for _ in range(n)]
+adj_list = {user: [] for user in users}
+
+connections = int(input("Enter the number of friendships: "))
+print("\nEnter the friendships (pair of user names):")
+for _ in range(connections):
+    u, v = input("Enter two users: ").split()
+    if u in user_to_index and v in user_to_index:
+        i, j = user_to_index[u], user_to_index[v]
+        adj_matrix[i][j] = 1
+        adj_matrix[j][i] = 1
+        if v not in adj_list[u]:
+            adj_list[u].append(v)
+        if u not in adj_list[v]:
+            adj_list[v].append(u)
+    else:
+        print("Invalid user name!")
+
+print("\n--- Adjacency Matrix ---")
+print("      " + "   ".join([f"{user:>7}" for user in users]))
+for i, user in enumerate(users):
+    row_str = "   ".join([f"{adj_matrix[i][j]:>7}" for j in range(n)])
+    print(f"{user:>5}: {row_str}")
+
+print("\n--- Adjacency List ---")
+for user in users:
+    print(f"User {user} ->", end=" ")
+    if adj_list[user]:
+        print(" -> ".join(adj_list[user]))
+    else:
+        print("No friends")
+
+print("\n--- Check Friendship ---")
+u, v = input("Enter two users to check friendship: ").split()
+if u in user_to_index and v in user_to_index:
+    i, j = user_to_index[u], user_to_index[v]
+    if adj_matrix[i][j] == 1:
+        print(f"User {u} and User {v} are directly connected (friends).")
+    else:
+        print(f"User {u} and User {v} are not directly connected.")
+else:
+    print("Invalid user name!")
