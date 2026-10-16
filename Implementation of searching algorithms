@@ -1,0 +1,34 @@
+n = int(input("Enter the number of students: "))
+r = list(map(int, input("Enter roll numbers separated by space: ").split()))
+key = int(input("Enter roll number to search: "))
+
+found = False
+for i in range(n):
+    if r[i] == key:
+        found = True
+        break
+
+if found:
+    print("Linear search: Roll number found")
+else:
+    print("Linear Search: Roll number not found")
+
+arr = sorted(r)
+low = 0
+high = len(arr) - 1
+found = False
+
+while low <= high:
+    mid = (low + high) // 2
+    if arr[mid] == key:
+        found = True
+        break
+    elif arr[mid] < key:
+        low = mid + 1
+    else:
+        high = mid - 1
+
+if found:
+    print("Binary search: Roll number found")
+else:
+    print("Binary search: Roll number not found")
